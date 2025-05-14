@@ -1,0 +1,25 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    user-select: none;
+}
+#toolbar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 10px;
+    border-radius: 10px;
+    z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: Arial;
+}
+canvas {
+    display: block;
+}
+input[type="text"],
+input[type="number"] {
+    width: 80px;
+}
