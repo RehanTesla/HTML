@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Gambar</title>
+        <link rel="stylesheet" href="system/style.css" />
+    </head>
+    <body>
+        <div id="toolbar">
+            <label
+                >Warna Garis:
+                <input type="color" id="colorPicker" value="#000000"
+            /></label>
+            <label
+                >Warna Latar: <input type="color" id="bgPicker" value="#ffffff"
+            /></label>
+            <label
+                >Ukuran Sentuhan:
+                <input type="number" id="lineWidth" value="2" min="1" max="50"
+            /></label>
+            <label
+                >Teks:
+                <input type="text" id="textInput" placeholder="Ketik teks"
+            /></label>
+            <label
+                >Ukuran Teks:
+                <input
+                    type="number"
+                    id="fontSize"
+                    value="24"
+                    min="10"
+                    max="200"
+            /></label>
+            <button onclick="toggleMode()">
+                Mode: <span id="modeLabel">Gambar</span>
+            </button>
+            <button onclick="clearCanvas()">Bersihkan</button>
+        </div>
+
+        <canvas id="canvas"></canvas>
+
+        <script src="system/script.js"></script>
+    </body>
+</html>
