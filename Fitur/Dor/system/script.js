@@ -1,0 +1,130 @@
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const remainingEl = document.getElementById("remaining");
+const startOverlay = document.getElementById("startOverlay");
+const ui = document.getElementById("ui");
+
+const shootSound = document.getElementById("shootSound");
+
+const player = { x: 300, y: 200, size: 20, speed: 3, angle: 0 };
+let bullets = [];
+let enemies = [];
+let kills = 0;
+const missionTarget = 100;
+let keys = {};
+let gameStarted = false;
+
+window.addEventListener("keydown", e => (keys[e.key] = true));
+window.addEventListener("keyup", e => (keys[e.key] = false));
+canvas.addEventListener("mousemove", e => {
+    const rect = canvas.getBoundingClientRect();
+    player.angle = Math.atan2(
+        e.clientY - rect.top - player.y,
+        e.clientX - rect.left - player.x
+    );
+});
+canvas.addEventListener("click", () => {
+    if (!gameStarted) return;
+    bullets.push({ x: player.x, y: player.y, angle: player.angle, speed: 5 });
+    shootSound.currentTime = 0;
+    shootSound.play();
+    canvas.classList.add("flash");
+    setTimeout(() => canvas.classList.remove("flash"), 100);
+});
+
+startOverlay.addEventListener("click", () => {
+    gameStarted = true;
+    startOverlay.style.display = "none";
+    ui.style.display = "block";
+});
+
+function spawnEnemy() {
+    const side = Math.floor(Math.random() * 4);
+    let x, y;
+    if (side === 0) {
+        x = 0;
+        y = Math.random() * canvas.height;
+    }
+    if (side === 1) {
+        x = canvas.width;
+        y = Math.random() * canvas.height;
+    }
+    if (side === 2) {
+        x = Math.random() * canvas.width;
+        y = 0;
+    }
+    if (side === 3) {
+        x = Math.random() * canvas.width;
+        y = canvas.height;
+    }
+    enemies.push({ x, y, size: 20, speed: 1 + Math.random() });
+}
+
+function update() {
+    if (!gameStarted) return;
+
+    if (keys["w"] && player.y > 0) player.y -= player.speed;
+    if (keys["s"] && player.y < canvas.height) player.y += player.speed;
+    if (keys["a"] && player.x > 0) player.x -= player.speed;
+    if (keys["d"] && player.x < canvas.width) player.x += player.speed;
+
+    bullets = bullets.filter(
+        b => b.x > 0 && b.x < canvas.width && b.y > 0 && b.y < canvas.height
+    );
+    bullets.forEach(b => {
+        b.x += Math.cos(b.angle) * b.speed;
+        b.y += Math.sin(b.angle) * b.speed;
+    });
+
+    enemies.forEach((e, i) => {
+        const dx = player.x - e.x;
+        const dy = player.y - e.y;
+        const dist = Math.hypot(dx, dy);
+        e.x += (dx / dist) * e.speed;
+        e.y += (dy / dist) * e.speed;
+        e.x += Math.sin(Date.now() * 0.005 + i) * 0.5;
+
+        if (dist < e.size + player.size) {
+            alert("Kalah");
+            setTimeout(async () => await window.location.reload(), 1);
+        }
+
+        bullets.forEach((b, bi) => {
+            if (Math.hypot(b.x - e.x, b.y - e.y) < e.size) {
+                enemies.splice(i, 1);
+                bullets.splice(bi, 1);
+                kills++;
+                remainingEl.textContent = missionTarget - kills;
+            }
+        });
+    });
+
+    if (enemies.length < 3 && kills < missionTarget) spawnEnemy();
+    if (kills >= missionTarget) {
+        alert("Menang");
+        setTimeout(async () => await window.location.reload(), 1);
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(player.x, player.y);
+    ctx.rotate(player.angle);
+    ctx.fillStyle = "#0f0";
+    ctx.fillRect(-player.size / 2, -player.size / 2, player.size, player.size);
+    ctx.restore();
+    ctx.fillStyle = "#ff0";
+    bullets.forEach(b => ctx.fillRect(b.x - 2, b.y - 2, 4, 4));
+    ctx.fillStyle = "#f00";
+    enemies.forEach(e =>
+        ctx.fillRect(e.x - e.size / 2, e.y - e.size / 2, e.size, e.size)
+    );
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+loop();
